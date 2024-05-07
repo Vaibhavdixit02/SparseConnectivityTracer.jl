@@ -1,7 +1,7 @@
-using SparseConnectivityTracer: TapeRecord, TapeSet
+using SparseConnectivityTracer: TapeSet, empty_tape
 using Test
 
-tape = TapeRecord{Float64}[]
+tape = empty_tape(Float64)
 x = [TapeSet{Float64}(i * π, tape) for i in 1:5]
 y = [union(x[i], x[i + 1]) for i in 1:4]
 z = [union(union(y[i], y[i + 1]), y[i + 2]) for i in 1:2]

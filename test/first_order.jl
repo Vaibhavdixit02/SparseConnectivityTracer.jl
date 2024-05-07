@@ -1,11 +1,17 @@
 using ReferenceTests
 using SparseConnectivityTracer
 using SparseConnectivityTracer: tracer, trace_input, inputs, empty
-using SparseConnectivityTracer: DuplicateVector, RecursiveSet, SortedVector, TapeSet
+using SparseConnectivityTracer:
+    DuplicateVector, RecursiveSet, SortedVector, TapeSet, empty_tape
 using Test
 
 @testset "Set type $S" for S in (
-    BitSet, Set{UInt64}, DuplicateVector{UInt64}, RecursiveSet{UInt64}, SortedVector{UInt64}
+    BitSet,
+    Set{UInt64},
+    DuplicateVector{UInt64},
+    RecursiveSet{UInt64},
+    SortedVector{UInt64},
+    TapeSet{UInt64},
 )
     CT = ConnectivityTracer{S}
     JT = JacobianTracer{S}
@@ -55,9 +61,9 @@ using Test
 
     # Base.show
     @test_reference "references/show/ConnectivityTracer_$S.txt" repr(
-        "text/plain", tracer(CT, 2)
+        "text/plain", tracer(CT, 2; tape=empty_tape(UInt64))
     )
     @test_reference "references/show/JacobianTracer_$S.txt" repr(
-        "text/plain", tracer(JT, 2)
+        "text/plain", tracer(JT, 2; tape=empty_tape(UInt64))
     )
 end

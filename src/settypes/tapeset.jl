@@ -4,6 +4,22 @@ struct TapeRecord{T}
     child2::Int
 end
 
+const Tape{T} = Vector{TapeRecord{T}}
+
+function vcat_tapes(tape1::Tape{T}, tape2::Tape{T}) where {T}
+    tape = vcat(tape1, tape2)
+    n1 = length(tape1)
+    for i in eachindex(tape2)
+        ti = tape[n1 + i]
+        c1 = ifelse(iszero(ti.child1), ti.child1, ti.child1 + n1)
+        c2 = ifelse(iszero(ti.child2), ti.child2, ti.child2 + n1)
+        tape[n1 + i] = TapeRecord(ti.element, c1, c2)
+    end
+    return tape
+end
+
+empty_tape(::Type{T}) where {T} = TapeRecord{T}[]  # TODO: add constants for common cases
+
 """
     TapeSet
 
@@ -14,7 +30,14 @@ A recursive set based on external tape storage.
 """
 struct TapeSet{T<:Number}
     tape_index::Int
-    tape::Vector{TapeRecord{T}}
+    tape::Tape{T}
+
+    function TapeSet{T}(x::Number) where {T}
+        tape = empty_tape(T)
+        record = TapeRecord(convert(T, x), 0, 0)
+        push!(tape, record)
+        return new{T}(length(tape), tape)
+    end
 
     function TapeSet{T}(x::Number, tape::Vector{TapeRecord{T}}) where {T}
         record = TapeRecord(convert(T, x), 0, 0)
@@ -22,11 +45,23 @@ struct TapeSet{T<:Number}
         return new{T}(length(tape), tape)
     end
 
+    function TapeSet{T}() where {T}
+        tape = empty_tape(T)
+        return new{T}(length(tape), tape)
+    end
+
     function TapeSet{T}(ts1::TapeSet{T}, ts2::TapeSet{T}) where {T}
-        @assert ts1.tape === ts2.tape  # is this slow?
-        record = TapeRecord(zero(T), ts1.tape_index, ts2.tape_index)
-        push!(ts1.tape, record)
-        return new{T}(length(ts1.tape), ts1.tape)
+        if ts1.tape === ts2.tape  # use common tape
+            tape = ts1.tape
+            record = TapeRecord(zero(T), ts1.tape_index, ts2.tape_index)
+            push!(tape, record)
+            return new{T}(length(tape), tape)
+        else  # merge tapes
+            tape = vcat_tapes(ts1.tape, ts2.tape)
+            record = TapeRecord(zero(T), ts1.tape_index, ts2.tape_index + length(ts1.tape))
+            push!(tape, record)
+            return new{T}(length(tape), tape)
+        end
     end
 end
 
@@ -50,12 +85,14 @@ end
 function collect_aux!(
     accumulator::Set{T}, tape_index::Integer, tape::Vector{TapeRecord{T}}
 ) where {T}
-    record = tape[tape_index]
-    if !iszero(record.element)
-        push!(accumulator, record.element)
-    else
-        collect_aux!(accumulator, record.child1, tape)
-        collect_aux!(accumulator, record.child2, tape)
+    if !iszero(tape_index)
+        record = tape[tape_index]
+        if !iszero(record.element)
+            push!(accumulator, record.element)
+        else
+            collect_aux!(accumulator, record.child1, tape)
+            collect_aux!(accumulator, record.child2, tape)
+        end
     end
     return nothing
 end
