@@ -52,6 +52,9 @@ DocMeta.setdocmeta!(
         @testset "SortedVector" begin
             include("settypes/sortedvector.jl")
         end
+        @testset "TapeSet" begin
+            include("settypes/tapeset.jl")
+        end
     end
 
     @testset "Classification of operators by diff'ability" begin

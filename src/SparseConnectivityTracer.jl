@@ -16,6 +16,7 @@ include("adtypes.jl")
 include("settypes/duplicatevector.jl")
 include("settypes/recursiveset.jl")
 include("settypes/sortedvector.jl")
+include("settypes/tapeset.jl")
 
 export ConnectivityTracer, connectivity_pattern
 export JacobianTracer, jacobian_pattern
