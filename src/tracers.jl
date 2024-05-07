@@ -1,7 +1,9 @@
-abstract type AbstractTracer <: Number end
+abstract type AbstractTracer{S} <: Number end
 
 # Convenience constructor for empty tracers
 empty(tracer::T) where {T<:AbstractTracer} = empty(T)
+
+Base.eltype(::Type{<:AbstractTracer{S}}) where {S} = eltype(S)
 
 #==============#
 # Connectivity #
@@ -25,7 +27,7 @@ $SET_TYPE_MESSAGE
 
 For a higher-level interface, refer to [`connectivity_pattern`](@ref).
 """
-struct ConnectivityTracer{S} <: AbstractTracer
+struct ConnectivityTracer{S} <: AbstractTracer{S}
     inputs::S # indices of connected, enumerated inputs
 end
 
@@ -75,7 +77,7 @@ $SET_TYPE_MESSAGE
 
 For a higher-level interface, refer to [`jacobian_pattern`](@ref).
 """
-struct JacobianTracer{S} <: AbstractTracer
+struct JacobianTracer{S} <: AbstractTracer{S}
     inputs::S
 end
 
@@ -120,7 +122,7 @@ $SET_TYPE_MESSAGE
 
 For a higher-level interface, refer to [`hessian_pattern`](@ref).
 """
-struct HessianTracer{S,I<:Integer} <: AbstractTracer
+struct HessianTracer{S,I<:Integer} <: AbstractTracer{S}
     inputs::Dict{I,S}
 end
 function Base.show(io::IO, t::HessianTracer{S}) where {S}
@@ -208,22 +210,29 @@ inputs(t::HessianTracer, i::Integer) = collect(t.inputs[i])
 
 Convenience constructor for [`ConnectivityTracer`](@ref), [`JacobianTracer`](@ref) and [`HessianTracer`](@ref) from input indices.
 """
-tracer(::Type{JacobianTracer{S}}, index::Integer) where {S} = JacobianTracer(S(index))
-function tracer(::Type{ConnectivityTracer{S}}, index::Integer) where {S}
+tracer(::Type{JacobianTracer{S}}, index::Integer; tape=nothing) where {S} =
+    JacobianTracer(S(index))
+function tracer(::Type{ConnectivityTracer{S}}, index::Integer; tape=nothing) where {S}
     return ConnectivityTracer(S(index))
 end
-function tracer(::Type{HessianTracer{S}}, index::Integer) where {S}
+function tracer(::Type{HessianTracer{S}}, index::Integer; tape=nothing) where {S}
     I = eltype(S)
     return HessianTracer{S,I}(Dict{I,S}(index => S()))
 end
 
-function tracer(::Type{JacobianTracer{S}}, inds::NTuple{N,<:Integer}) where {N,S}
+function tracer(
+    ::Type{JacobianTracer{S}}, inds::NTuple{N,<:Integer}, tape=nothing
+) where {N,S}
     return JacobianTracer{S}(S(inds))
 end
-function tracer(::Type{ConnectivityTracer{S}}, inds::NTuple{N,<:Integer}) where {N,S}
+function tracer(
+    ::Type{ConnectivityTracer{S}}, inds::NTuple{N,<:Integer}, tape=nothing
+) where {N,S}
     return ConnectivityTracer{S}(S(inds))
 end
-function tracer(::Type{HessianTracer{S}}, inds::NTuple{N,<:Integer}) where {N,S}
+function tracer(
+    ::Type{HessianTracer{S}}, inds::NTuple{N,<:Integer}, tape=nothing
+) where {N,S}
     I = eltype(S)
     return HessianTracer{S,I}(Dict{I,S}(i => S() for i in inds))
 end

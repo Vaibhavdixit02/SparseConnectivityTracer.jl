@@ -8,6 +8,9 @@ end
     TapeSet
 
 A recursive set based on external tape storage.
+
+!!! danger
+    This type does not work yet.
 """
 struct TapeSet{T<:Number}
     tape_index::Int
@@ -55,4 +58,21 @@ function collect_aux!(
         collect_aux!(accumulator, record.child2, tape)
     end
     return nothing
+end
+
+## SCT tricks
+
+function tracer(::Type{JacobianTracer{S}}, index::Integer; tape=nothing) where {S<:TapeSet}
+    return JacobianTracer(S(index, tape))
+end
+
+function tracer(
+    ::Type{ConnectivityTracer{S}}, index::Integer; tape=nothing
+) where {S<:TapeSet}
+    return ConnectivityTracer(S(index, tape))
+end
+
+function tracer(::Type{HessianTracer{S}}, index::Integer; tape=nothing) where {S<:TapeSet}
+    I = eltype(S)
+    return HessianTracer{S,I}(Dict{I,S}(index => S(tape)))
 end

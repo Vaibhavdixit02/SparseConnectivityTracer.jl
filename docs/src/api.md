@@ -34,4 +34,5 @@ We also define alternative pseudo-set types that can deliver faster `union`:
 SparseConnectivityTracer.DuplicateVector
 SparseConnectivityTracer.RecursiveSet
 SparseConnectivityTracer.SortedVector
+SparseConnectivityTracer.TapeSet
 ```

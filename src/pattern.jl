@@ -9,11 +9,18 @@ const DEFAULT_SET_TYPE = BitSet
 Enumerates input indices and constructs the specified type `T` of tracer.
 Supports [`ConnectivityTracer`](@ref), [`JacobianTracer`](@ref) and [`HessianTracer`](@ref).
 """
-trace_input(::Type{T}, x) where {T<:AbstractTracer} = trace_input(T, x, 1)
-trace_input(::Type{T}, ::Number, i) where {T<:AbstractTracer} = tracer(T, i)
-function trace_input(::Type{T}, x::AbstractArray, i) where {T<:AbstractTracer}
+function trace_input(::Type{T}, x) where {T<:AbstractTracer}
+    tape = TapeRecord{eltype(T)}[]
+    return trace_input(T, x, 1; tape)
+end
+
+function trace_input(::Type{T}, ::Number, i; tape=nothing) where {T<:AbstractTracer}
+    return tracer(T, i; tape)
+end
+
+function trace_input(::Type{T}, x::AbstractArray, i; tape=nothing) where {T<:AbstractTracer}
     indices = (i - 1) .+ reshape(1:length(x), size(x))
-    return tracer.(T, indices)
+    return tracer.(T, indices; tape=tape)
 end
 
 ## Trace function

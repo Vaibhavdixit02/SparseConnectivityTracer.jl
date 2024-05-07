@@ -1,7 +1,7 @@
 using ReferenceTests
 using SparseConnectivityTracer
 using SparseConnectivityTracer: tracer, trace_input, inputs, empty
-using SparseConnectivityTracer: DuplicateVector, RecursiveSet, SortedVector
+using SparseConnectivityTracer: DuplicateVector, RecursiveSet, SortedVector, TapeSet
 using Test
 
 @testset "Set type $S" for S in (
